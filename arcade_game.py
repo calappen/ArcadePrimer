@@ -69,27 +69,20 @@ class SpaceShooter(arcade.Window):
         # Spawn a new cloud every second
         arcade.schedule(self.add_cloud, 1.0)
 
+        # Load your background music
+        # Sound source: http://ccmixter.org/files/Apoxode/59262
+        # License: https://creativecommons.org/licenses/by/3.0/
+        self.background_music = arcade.load_sound(
+            "sounds/Apoxode_-_Electric_1.wav"
+        )
+
+        # Load your sounds
+        # Sound sources: Jon Fincher
+        self.collision_sound = arcade.load_sound("sounds/Collision.wav")
+        self.move_up_sound = arcade.load_sound("sounds/Rising_putter.wav")
+        self.move_down_sound = arcade.load_sound("sounds/Falling_putter.wav")
+
         self.paused = False
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
     def add_enemy(self, delta_time: float):
         """Adds a new enemy to the screen
@@ -152,9 +145,11 @@ class SpaceShooter(arcade.Window):
         
         if symbol == arcade.key.W or symbol == arcade.key.UP:
             self.player.change_y = 5
+            arcade.play_sound(self.move_up_sound)
         
         if symbol == arcade.key.S or symbol == arcade.key.DOWN:
             self.player.change_y = -5
+            arcade.play_sound(self.move_down_sound)
 
         if symbol == arcade.key.A or symbol == arcade.key.LEFT:
             self.player.change_x = -5
@@ -194,6 +189,11 @@ class SpaceShooter(arcade.Window):
         # If paused don't update anything
         if self.paused:
             return
+
+        # Did you hit anything? If so, end the game
+        if len(self.player.collides_with_list(self.enemies_list)) > 0:
+            arcade.play_sound(self.collision_sound)
+            arcade.close_window()
 
         # Update everything
         self.all_sprites.update()
