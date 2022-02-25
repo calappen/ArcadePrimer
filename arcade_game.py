@@ -1,6 +1,8 @@
 # Basic arcade shooter
 
 # Imports
+from pickle import FALSE
+from turtle import right
 import arcade
 import random
 
@@ -10,19 +12,13 @@ SCREEN_HEIGHT = 600
 SCREEN_TITLE = "Arcade Space Shooter"
 SCALING = 1.0
 
-
-
-
-
 class FlyingSprite(arcade.Sprite):
     """Base class for all flying sprites
-    Flying sprites include enemies and clouds
-    """
+    Flying sprites include enemies and clouds"""
 
     def update(self):
         """Update the position of the sprite
-        When it moves off screen to the left, remove it
-        """
+        When it moves off screen to the left, remove it"""
 
         # Move the sprite
         super().update()
@@ -37,12 +33,10 @@ class SpaceShooter(arcade.Window):
     Player starts on the left, enemies appear on the right
     Player can move anywhere, but not off screen
     Enemies fly to the left at variable speed
-    Collisions end the game
-    """
+    Collisions end the game"""
 
     def __init__(self, width, height, title):
-        """Initialize the game
-        """
+        """Initialize the game"""
         super().__init__(width, height, title)
 
         # Set up the empty sprite lists
@@ -51,8 +45,7 @@ class SpaceShooter(arcade.Window):
         self.all_sprites = arcade.SpriteList()
 
     def setup(self):
-        """Get the game ready to play
-        """
+        """Get the game ready to play"""
 
         # Set the background color
         arcade.set_background_color(arcade.color.SKY_BLUE)
@@ -62,6 +55,11 @@ class SpaceShooter(arcade.Window):
         self.player.center_y = self.height / 2
         self.player.left = 10
         self.all_sprites.append(self.player)
+        self.player_speed = 250
+        self.right = False
+        self.left = False
+        self.up = False
+        self.down = False
 
         # Spawn a new enemy every 0.25 seconds
         arcade.schedule(self.add_enemy, 0.25)
@@ -88,8 +86,7 @@ class SpaceShooter(arcade.Window):
         """Adds a new enemy to the screen
         
         Arguments:
-            delta_time {float} -- How much time has pass since the last call
-        """
+            delta_time {float} -- How much time has pass since the last call"""
 
         # First, create the new enemy sprite
         enemy = FlyingSprite("images/missile.png", SCALING)
@@ -99,7 +96,7 @@ class SpaceShooter(arcade.Window):
         enemy.top = random.randint(10, self.height - 10)
 
         # Set its speed to a random speed heading left
-        enemy.velocity = (random.randint(-20, -5), 0)
+        enemy.velocity = (random.randint(-100, -50), 0)
 
         # Add it to the enemies list
         self.enemies_list.append(enemy)
@@ -109,8 +106,7 @@ class SpaceShooter(arcade.Window):
         """Adds a new cloud to the screen
         
         Arguments:
-            delta_time {float} -- How much time has passed since the last call
-        """
+            delta_time {float} -- How much time has passed since the last call"""
         # First, create the new cloud sprite
         cloud = FlyingSprite("images/cloud.png", SCALING)
 
@@ -119,7 +115,7 @@ class SpaceShooter(arcade.Window):
         cloud.top = random.randint(10, self.height - 10)
 
         # Set its speed to a random speed heading left
-        cloud.velocity = (random.randint(-50, -20), 0)
+        cloud.velocity = (random.randint(-100, -20), 0)
 
         # Add it to the enemies list
         self.clouds_list.append(cloud)
@@ -134,8 +130,7 @@ class SpaceShooter(arcade.Window):
         
         Arguments:
             symbol {int} -- Which key was pressed
-            modifiers {int} -- Which modifiers were pressed
-            """
+            modifiers {int} -- Which modifiers were pressed"""
         if symbol == arcade.key.ESCAPE:
             # Quit immediately
             arcade.close_window()
@@ -143,60 +138,119 @@ class SpaceShooter(arcade.Window):
         if symbol == arcade.key.SPACE:
             self.paused = not self.paused
         
-        if symbol == arcade.key.W or symbol == arcade.key.UP:
-            self.player.change_y = 5
+        if (symbol == arcade.key.W or symbol == arcade.key.UP):
+            self.up = True
             arcade.play_sound(self.move_up_sound)
-        
-        if symbol == arcade.key.S or symbol == arcade.key.DOWN:
-            self.player.change_y = -5
+
+        if (symbol == arcade.key.S or symbol == arcade.key.DOWN):
+            self.down = True
             arcade.play_sound(self.move_down_sound)
 
-        if symbol == arcade.key.A or symbol == arcade.key.LEFT:
-            self.player.change_x = -5
+        if (symbol == arcade.key.A or symbol == arcade.key.LEFT):
+            self.left = True
+
+        if (symbol == arcade.key.D or symbol == arcade.key.RIGHT):
+            self.right = True
+
+        # if symbol == arcade.key.W or symbol == arcade.key.UP:
+        #     self.player.change_y = 100
+        #     arcade.play_sound(self.move_up_sound)
         
-        if symbol == arcade.key.D or symbol == arcade.key.RIGHT:
-            self.player.change_x = 5
+        # if symbol == arcade.key.S or symbol == arcade.key.DOWN:
+        #     self.player.change_y = -50  
+        #     arcade.play_sound(self.move_down_sound)
+
+        # if symbol == arcade.key.A or symbol == arcade.key.LEFT:
+        #     self.player.change_x = -50
+        
+        # if symbol == arcade.key.D or symbol == arcade.key.RIGHT:
+        #     self.player.change_x = 100
 
     def on_key_release(self, symbol: int, modifiers: int):
         """"Undo movement vectors when movement keys are released
         
         Arguments:
             symbol {int} -- Which key was pressed
-            modifiers {int} -- Which modifiers were pressed
-        """
-        if (symbol == arcade.key.W or
-            symbol == arcade.key.S or
-            symbol == arcade.key.UP or
-            symbol == arcade.key.DOWN
-        ):
-            self.player.change_y = 0
+            modifiers {int} -- Which modifiers were pressed"""
 
-        if (symbol == arcade.key.A or
-            symbol == arcade.key.D or
-            symbol == arcade.key.LEFT or
-            symbol == arcade.key.RIGHT
-        ):
-            self.player.change_x = 0
+        if (symbol == arcade.key.W or arcade.key.UP):
+            self.up = False
+
+        if (symbol == arcade.key.S or arcade.key.DOWN):
+            self.down = False
+
+        if (symbol == arcade.key.A or arcade.key.LEFT) and self.right == True:
+            self.right = True
+
+        elif (symbol == arcade.key.A or arcade.key.LEFT):
+            self.left = False
+
+        if (symbol == arcade.key.D or arcade.key.RIGHT) and self.left == True:
+            self.left = True
+
+        elif (symbol == arcade.key.D or arcade.key.RIGHT) and self.left == False:
+            self.right = False
+
+        # if (symbol == arcade.key.W or
+        #     symbol == arcade.key.UP or
+        #     symbol == arcade.key.S or
+        #     symbol == arcade.key.DOWN
+        # ):
+        #     self.player.change_y = 0
+
+        # if (symbol == arcade.key.A or
+        #     symbol == arcade.key.LEFT or
+        #     symbol == arcade.key.D or
+        #     symbol == arcade.key.RIGHT
+        # ):
+        #     self.player.change_x = 0
 
     def on_update(self, delta_time: float):
         """Update the positions and statuses of all game objects
         If paused, do nothing
 
         Arguments:
-            delta_time {float} -- Time since the last update
-        """
+            delta_time {float} -- Time since the last update"""
 
         # If paused don't update anything
         if self.paused:
             return
-
         # Did you hit anything? If so, end the game
         if len(self.player.collides_with_list(self.enemies_list)) > 0:
             arcade.play_sound(self.collision_sound)
             arcade.close_window()
 
+        if self.right == True or self.left == False:
+            self.player.change_x += self.player_speed * delta_time
+
+        if self.left == True or self.right == False:
+            self.player.change_x -= self.player_speed * delta_time
+        
+        if self.up == True or self.down == False:
+            self.player.change_y += self.player_speed * delta_time
+
+        if self.down == True or self.up == False:
+            self.player.change_y -= self.player_speed * delta_time
+
+        if self.left == False and self.right == False:
+            self.player.change_x = 0
+        
+        if self.up == False and self.down == False:
+            self.player.change_y = 0
+
+        if self.left == True and self.right == True:
+            self.player.change_x = 0
+        
+        if self.up == True and self.down == True:
+            self.player.change_y = 0
+
         # Update everything
-        self.all_sprites.update()
+        for sprite in self.all_sprites:
+            sprite.center_x = int(
+                sprite.center_x + sprite.change_x * delta_time)
+            sprite.center_y = int(
+                sprite.center_y + sprite.change_y * delta_time
+            )
 
         # Keep the player on screen
         if self.player.top > self.height:
@@ -209,8 +263,7 @@ class SpaceShooter(arcade.Window):
             self.player.left = 0
 
     def on_draw(self):
-        """Draw all game objects
-        """
+        """Draw all game objects"""
         arcade.start_render()
         self.all_sprites.draw()
 
